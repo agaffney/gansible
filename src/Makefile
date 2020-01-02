@@ -6,7 +6,7 @@ all: build
 
 build: $(BINARY)
 
-$(BINARY):
+$(BINARY): $(shell find . -name '*.go')
 	go build -o $(BINARY)
 
 clean:

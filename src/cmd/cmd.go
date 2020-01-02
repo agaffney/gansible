@@ -7,9 +7,9 @@ type command struct {
 	entrypoint entrypointFunc
 }
 
-var commands = []*command{}
+var commands = []command{}
 
-func addCommand(cmd *command) {
+func addCommand(cmd command) {
 	commands = append(commands, cmd)
 }
 
