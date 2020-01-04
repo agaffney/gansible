@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/agaffney/gansible/python"
 )
 
 type adhocFlags struct {
@@ -20,4 +21,5 @@ func adhocMain() {
 	flags := adhocFlags{}
 	addFlagsCore(&flags.core)
 	parseFlags()
+	python.Init()
 }
