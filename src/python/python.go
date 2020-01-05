@@ -2,25 +2,21 @@ package python
 
 import (
 	"fmt"
+	// I'm using the py2.7 library because it will build easily against the
+	// python libs provided by my Ubuntu 16.04 system. The v3 version of the
+	// python library requires py3.7, and only py3.5 is provided via apt.
 	//"github.com/DataDog/go-python3"
 	"github.com/sbinet/go-python"
 	"io/ioutil"
 	"log"
 	"os"
 	"path"
+	"strings"
 )
 
-var pyHelperSrc = `
-from __future__ import print_function
+const PY_MODULE_PREFIX = `gansible_`
 
-import sys
-
-class DummyHelper(object):
-    def __init__(self):
-#        print('args: %s' % sys.argv)
-#        print(dir(sys))
-        print('instantiated DummyHelper')
-`
+var origSysPath string
 
 func Init() {
 	err := python.Initialize()
@@ -28,36 +24,78 @@ func Init() {
 		fmt.Println("failed to initialize python: %s", err)
 		os.Exit(1)
 	}
-	if foo := python.PyRun_SimpleString(pyHelperSrc); foo < 0 {
-		fmt.Println("failed to eval python helper code")
-		os.Exit(1)
-	}
-	helperModule := importHelperModule()
-	fmt.Printf("helperModule = %#v\n", helperModule)
+	origSysPath = getSysPath()
+	helperModule := loadHelperModule()
 	testObj := CreateClassInstance(helperModule, `DummyHelper`, nil)
-	fmt.Printf("testObj = %#v\n", testObj)
+	fmt.Printf("testObj = %#v, %s\n", testObj, testObj.Repr())
 	fmt.Println("initialized python")
 }
 
-// TODO: refactor to use PyRun_SimpleString() to eval, PyImport_GetModuleDict(), and
-// PyDict_GetItemString(moduleDict, '__main__')
-func importHelperModule() *python.PyObject {
-	tmpDir, err := ioutil.TempDir("", "tmp.gansible")
-	if err != nil {
-		log.Fatal(err)
+func getSysPath() string {
+	sysModule := getModule("sys")
+	sysPath := getAttr(sysModule, "path")
+	tmp := make([]string, 0)
+	for _, val := range ToGoType(sysPath).([]interface{}) {
+		tmp = append(tmp, val.(string))
 	}
-	fmt.Printf("tmpDir = %s\n", tmpDir)
-	defer os.RemoveAll(tmpDir)
-	err = ioutil.WriteFile(path.Join(tmpDir, "helpers.py"), []byte(pyHelperSrc), 0644)
-	if err != nil {
-		log.Fatal(fmt.Printf("failed to write temp file for python helpers: %s", err))
-	}
-	python.PySys_SetPath(tmpDir)
-	pyModule := python.PyImport_ImportModule("helpers")
+	return strings.Join(tmp, ":")
+}
+
+func setSysPath(path string) {
+	python.PySys_SetPath(path)
+}
+
+func sysPathPrepend(path string) {
+	sysModule := getModule("sys")
+	sysPath := getAttr(sysModule, "path")
+	python.PyList_Insert(sysPath, 0, String(path))
+}
+
+func sysPathReset() {
+	setSysPath(origSysPath)
+}
+
+func buildModuleName(name string) string {
+	return fmt.Sprintf("%s%s", PY_MODULE_PREFIX, name)
+}
+
+func importModule(moduleName string) *python.PyObject {
+	pyModule := python.PyImport_ImportModule(moduleName)
 	if pyModule == nil {
-		log.Fatal(fmt.Printf("failed to import python helpers module"))
+		printException()
+		log.Fatal(fmt.Sprintf("failed to import python module '%s'", moduleName))
 	}
 	return pyModule
+}
+
+func importModuleFromString(moduleName string, moduleSrc string) *python.PyObject {
+	tmpDir, err := ioutil.TempDir("", "tmp.gansible")
+	if err != nil {
+		log.Fatal(fmt.Sprintf("failed to create temp dir: %s", err))
+	}
+	defer os.RemoveAll(tmpDir)
+	err = ioutil.WriteFile(path.Join(tmpDir, fmt.Sprintf("%s.py", moduleName)), []byte(moduleSrc), 0644)
+	if err != nil {
+		log.Fatal(fmt.Sprintf("failed to write temp file: %s", err))
+	}
+	sysPathPrepend(tmpDir)
+	module := importModule(moduleName)
+	sysPathReset()
+	return module
+}
+
+func getModule(moduleName string) *python.PyObject {
+	d := python.PyImport_GetModuleDict()
+	module := python.PyDict_GetItemString(d, moduleName)
+	return module
+}
+
+func getAttr(obj *python.PyObject, key string) *python.PyObject {
+	return obj.GetAttrString(key)
+}
+
+func printException() {
+	python.PyErr_Print()
 }
 
 func Cleanup() {
@@ -69,12 +107,9 @@ func Cleanup() {
 	fmt.Println("finalized python")
 }
 
-func CreateClassInstance(module *python.PyObject, className string, args []*python.PyObject) *python.PyObject {
-	pyClass := module.GetAttrString(className)
-	//fmt.Printf("pyClass = %#v, %s, %s\n", pyClass, pyClass.Repr(), pyClass.PyObject_Dir())
-	pyObj := pyClass.Call(python.PyTuple_New(0), python.PyDict_New()) //args)
-	fmt.Printf("pyObj = %#v\n", pyObj)
-	python.PyErr_Print()
-	pyClass.DecRef()
+func CreateClassInstance(module *python.PyObject, className string, args []interface{}) *python.PyObject {
+	pyClass := getAttr(module, className)
+	pyObj := pyClass.Call(Tuple(args), Dict(nil))
+	pyClass.Clear()
 	return pyObj
 }

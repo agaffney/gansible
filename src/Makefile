@@ -11,3 +11,6 @@ $(BINARY): $(shell find . -name '*.go')
 
 clean:
 	rm -f $(BINARY)
+
+run: build
+	./$(BINARY)
