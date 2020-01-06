@@ -1,16 +1,52 @@
 BINARY=gansible
 
-.PHONY: all build clean
+TMPDIR=$(CURDIR)/tmp
+
+export GOPATH=$(TMPDIR)/gopath
+export PATH=$(GOPATH)/bin:$(TMPDIR)/bin:$(shell echo $$PATH)
+
+PROTOC=$(TMPDIR)/bin/protoc
+PROTOC_GEN_GO=$(GOPATH)/bin/protoc-gen-go
+
+GO_FILES=$(shell find $(CURDIR) -name '*.go' | grep -v '^$(TMPDIR)')
+
+PROTOBUF_FILES=$(shell find python/grpc -name '*.proto')
+PROTOBUF_GO_FILES=$(patsubst %.proto,%.pb.go,$(PROTOBUF_FILES))
+
+# Disable implicit rules
+.SUFFIXES:
 
 all: build
 
+.PHONY: all build clean
+
 build: $(BINARY)
 
-$(BINARY): $(shell find . -name '*.go')
+$(BINARY): $(GO_FILES) $(PROTOBUF_GO_FILES)
 	go build -o $(BINARY)
 
 clean:
-	rm -f $(BINARY)
+	rm -rf $(BINARY) $(PROTOC) $(PROTOC_GEN_GO) $(PROTOBUF_GO_FILES) $(TMPDIR)
 
 run: build
 	./$(BINARY)
+
+.PHONY: grpc-protos grpc-protos-go grpc-protos-py
+
+grpc-protos: grpc-protos-go #grpc-protos-py
+
+grpc-protos-go: $(PROTOBUF_GO_FILES)
+
+# Generate Go protobuf files
+%.pb.go: %.proto $(PROTOC) $(PROTOC_GEN_GO)
+	$(PROTOC) --go_out=plugins=grpc:. $(patsubst %.pb.go,%.proto,$@)
+
+# Download/unzip protoc binary
+$(PROTOC):
+	mkdir -p $(TMPDIR)
+	curl -L -o $(TMPDIR)/protoc.zip https://github.com/protocolbuffers/protobuf/releases/download/v3.11.2/protoc-3.11.2-linux-x86_64.zip
+	unzip -d $(TMPDIR) $(TMPDIR)/protoc.zip bin/protoc
+
+# Download/build protoc-gen-go binary
+$(PROTOC_GEN_GO):
+	go get -u github.com/golang/protobuf/protoc-gen-go

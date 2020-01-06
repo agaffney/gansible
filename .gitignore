@@ -16,3 +16,6 @@
 
 # Binary
 src/gansible
+
+# Temp dirs
+tmp/
