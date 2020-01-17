@@ -15,7 +15,7 @@ class TestStub(object):
       channel: A grpc.Channel.
     """
     self.Ping = channel.unary_unary(
-        '/test.Test/Ping',
+        '/grpc.Test/Ping',
         request_serializer=test__pb2.PingRequest.SerializeToString,
         response_deserializer=test__pb2.PingResponse.FromString,
         )
@@ -42,5 +42,5 @@ def add_TestServicer_to_server(servicer, server):
       ),
   }
   generic_handler = grpc.method_handlers_generic_handler(
-      'test.Test', rpc_method_handlers)
+      'grpc.Test', rpc_method_handlers)
   server.add_generic_rpc_handlers((generic_handler,))

@@ -18,7 +18,8 @@ def serve():
     server.add_insecure_port('[::]:50051')
     server.start()
 
-serve()
+    while True:
+        time.sleep(60)
 
-while True:
-    time.sleep(60)
+
+serve()

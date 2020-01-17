@@ -55,7 +55,8 @@ grpc-protos-go: $(PROTOBUF_GO_FILES)
 
 # Generate Go protobuf files
 %.pb.go: %.proto $(PROTOC) $(PROTOC_GEN_GO)
-	$(PROTOC) --go_out=plugins=grpc:. $(patsubst %.pb.go,%.proto,$@)
+	cd $(dir $@); \
+		$(PROTOC) -I . --go_out=plugins=grpc:. $(notdir $(patsubst %.pb.go,%.proto,$@))
 
 grpc-protos-py: $(PROTOBUF_PY_FILES)
 
@@ -94,6 +95,6 @@ $(GRPC_PY_ZIP): $(PROTOBUF_PY_FILES) $(GRPC_PY_FILES)
 
 # Build Go file with Python gRPC stub ZIP embedded
 $(GRPC_PY_ZIP_GO_FILE): $(GRPC_PY_ZIP)
-	echo -e '# This file is generated. Do not edit!\n\npackage grpc\n\nconst pyGrpcZipContent = `' > $(GRPC_PY_ZIP_GO_FILE)
+	echo -e '// This file is generated. Do not edit!\n\npackage grpc\n\nconst pyGrpcZipContent = `' > $(GRPC_PY_ZIP_GO_FILE)
 	base64 $(GRPC_PY_ZIP) >> $(GRPC_PY_ZIP_GO_FILE)
 	echo -e '`' >> $(GRPC_PY_ZIP_GO_FILE)

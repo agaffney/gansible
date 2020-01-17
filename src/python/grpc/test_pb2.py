@@ -17,10 +17,10 @@ _sym_db = _symbol_database.Default()
 
 DESCRIPTOR = _descriptor.FileDescriptor(
   name='test.proto',
-  package='test',
+  package='grpc',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=_b('\n\ntest.proto\x12\x04test\"(\n\x0bPingRequest\x12\x0c\n\x04ping\x18\x01 \x01(\x08\x12\x0b\n\x03msg\x18\x02 \x01(\t\")\n\x0cPingResponse\x12\x0c\n\x04pong\x18\x01 \x01(\x08\x12\x0b\n\x03msg\x18\x02 \x01(\t27\n\x04Test\x12/\n\x04Ping\x12\x11.test.PingRequest\x1a\x12.test.PingResponse\"\x00\x62\x06proto3')
+  serialized_pb=_b('\n\ntest.proto\x12\x04grpc\"(\n\x0bPingRequest\x12\x0c\n\x04ping\x18\x01 \x01(\x08\x12\x0b\n\x03msg\x18\x02 \x01(\t\")\n\x0cPingResponse\x12\x0c\n\x04pong\x18\x01 \x01(\x08\x12\x0b\n\x03msg\x18\x02 \x01(\t27\n\x04Test\x12/\n\x04Ping\x12\x11.grpc.PingRequest\x1a\x12.grpc.PingResponse\"\x00\x62\x06proto3')
 )
 
 
@@ -28,20 +28,20 @@ DESCRIPTOR = _descriptor.FileDescriptor(
 
 _PINGREQUEST = _descriptor.Descriptor(
   name='PingRequest',
-  full_name='test.PingRequest',
+  full_name='grpc.PingRequest',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='ping', full_name='test.PingRequest.ping', index=0,
+      name='ping', full_name='grpc.PingRequest.ping', index=0,
       number=1, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='msg', full_name='test.PingRequest.msg', index=1,
+      name='msg', full_name='grpc.PingRequest.msg', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -66,20 +66,20 @@ _PINGREQUEST = _descriptor.Descriptor(
 
 _PINGRESPONSE = _descriptor.Descriptor(
   name='PingResponse',
-  full_name='test.PingResponse',
+  full_name='grpc.PingResponse',
   filename=None,
   file=DESCRIPTOR,
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='pong', full_name='test.PingResponse.pong', index=0,
+      name='pong', full_name='grpc.PingResponse.pong', index=0,
       number=1, type=8, cpp_type=7, label=1,
       has_default_value=False, default_value=False,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='msg', full_name='test.PingResponse.msg', index=1,
+      name='msg', full_name='grpc.PingResponse.msg', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -108,14 +108,14 @@ _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 PingRequest = _reflection.GeneratedProtocolMessageType('PingRequest', (_message.Message,), {
   'DESCRIPTOR' : _PINGREQUEST,
   '__module__' : 'test_pb2'
-  # @@protoc_insertion_point(class_scope:test.PingRequest)
+  # @@protoc_insertion_point(class_scope:grpc.PingRequest)
   })
 _sym_db.RegisterMessage(PingRequest)
 
 PingResponse = _reflection.GeneratedProtocolMessageType('PingResponse', (_message.Message,), {
   'DESCRIPTOR' : _PINGRESPONSE,
   '__module__' : 'test_pb2'
-  # @@protoc_insertion_point(class_scope:test.PingResponse)
+  # @@protoc_insertion_point(class_scope:grpc.PingResponse)
   })
 _sym_db.RegisterMessage(PingResponse)
 
@@ -123,7 +123,7 @@ _sym_db.RegisterMessage(PingResponse)
 
 _TEST = _descriptor.ServiceDescriptor(
   name='Test',
-  full_name='test.Test',
+  full_name='grpc.Test',
   file=DESCRIPTOR,
   index=0,
   serialized_options=None,
@@ -132,7 +132,7 @@ _TEST = _descriptor.ServiceDescriptor(
   methods=[
   _descriptor.MethodDescriptor(
     name='Ping',
-    full_name='test.Test.Ping',
+    full_name='grpc.Test.Ping',
     index=0,
     containing_service=None,
     input_type=_PINGREQUEST,

@@ -2,6 +2,7 @@ package python
 
 import (
 	"fmt"
+	"github.com/agaffney/gansible/python/grpc"
 	// I'm using the py2.7 library because it will build easily against the
 	// python libs provided by my Ubuntu 16.04 system. The v3 version of the
 	// python library requires py3.7, and only py3.5 is provided via apt.
@@ -19,6 +20,9 @@ const PY_MODULE_PREFIX = `gansible_`
 var origSysPath string
 
 func Init() {
+	g := grpc.New()
+	g.Start()
+	return
 	err := python.Initialize()
 	if err != nil {
 		fmt.Println("failed to initialize python: %s", err)
