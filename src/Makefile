@@ -37,7 +37,7 @@ all: build
 
 build: $(BINARY)
 
-$(BINARY): $(GO_FILES) $(PROTOBUF_GO_FILES)
+$(BINARY): $(GO_FILES) $(PROTOBUF_GO_FILES) $(GRPC_PY_ZIP_GO_FILE)
 	go build -o $(BINARY)
 
 clean:
@@ -91,3 +91,9 @@ grpc-py-zip: $(GRPC_PY_ZIP)
 $(GRPC_PY_ZIP): $(PROTOBUF_PY_FILES) $(GRPC_PY_FILES)
 	cd $(dir $(GRPC_PY_ZIP)) ; \
 		$(PYTHON) -m zipfile -c $(notdir $(GRPC_PY_ZIP)) $(notdir $(PROTOBUF_PY_FILES) $(GRPC_PY_FILES))
+
+# Build Go file with Python gRPC stub ZIP embedded
+$(GRPC_PY_ZIP_GO_FILE): $(GRPC_PY_ZIP)
+	echo -e '# This file is generated. Do not edit!\n\npackage grpc\n\nconst pyGrpcZipContent = `' > $(GRPC_PY_ZIP_GO_FILE)
+	base64 $(GRPC_PY_ZIP) >> $(GRPC_PY_ZIP_GO_FILE)
+	echo -e '`' >> $(GRPC_PY_ZIP_GO_FILE)
