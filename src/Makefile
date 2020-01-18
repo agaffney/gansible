@@ -41,7 +41,7 @@ $(BINARY): $(GO_FILES) $(PROTOBUF_GO_FILES) $(GRPC_PY_ZIP_GO_FILE)
 	go build -o $(BINARY)
 
 clean:
-	rm -rf $(BINARY) $(PROTOC) $(PROTOC_GEN_GO) $(PROTOBUF_GO_FILES) $(TMPDIR) $(VENV_PATH) $(GRPC_PY_ZIP)
+	rm -rf $(BINARY) $(TMPDIR) $(shell find . -name '*.pyc')
 
 run: build
 	./$(BINARY)

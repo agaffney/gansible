@@ -22,3 +22,6 @@ tmp/
 
 # Python GRPC ZIP
 python_grpc.zip
+
+# Compiled Python files
+*.pyc

@@ -15,6 +15,8 @@ import (
 )
 
 type Grpc struct {
+	pythonCmd *exec.Cmd
+	port      int
 }
 
 func New() *Grpc {
@@ -25,11 +27,13 @@ func New() *Grpc {
 func (g *Grpc) Start() {
 	dir, _ := ioutil.TempDir("", "tmp.gansible")
 	zipContent, _ := base64.StdEncoding.DecodeString(pyGrpcZipContent)
-	_ = ioutil.WriteFile(path.Join(dir, "python_grpc.zip"), zipContent, 0400)
-	pythonCmd := exec.Command("python", path.Join(dir, "python_grpc.zip"))
+	zipFile := path.Join(dir, "python_grpc.zip")
+	_ = ioutil.WriteFile(zipFile, zipContent, 0400)
+	g.pythonCmd = exec.Command("python", zipFile)
 	go func() {
-		// Put child process in its own process group to make it easier to kill
-		pythonCmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+		// Put child process in its own process group to make it easier to kill with
+		/// all its children
+		g.pythonCmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 		// Setup signal handler
 		s := make(chan os.Signal, 1)
 		signal.Notify(s, syscall.SIGINT, syscall.SIGTERM)
@@ -38,10 +42,10 @@ func (g *Grpc) Start() {
 			<-s
 			signalReceived = true
 			fmt.Println("Killing python process...")
-			syscall.Kill(-pythonCmd.Process.Pid, syscall.SIGKILL)
+			syscall.Kill(-g.pythonCmd.Process.Pid, syscall.SIGKILL)
 			os.Exit(0)
 		}()
-		output, err := pythonCmd.CombinedOutput()
+		output, err := g.pythonCmd.CombinedOutput()
 		os.RemoveAll(dir)
 		if err != nil {
 			if signalReceived {
@@ -64,7 +68,7 @@ func (g *Grpc) Start() {
 	client := NewTestClient(conn)
 	for {
 		ret, err := client.Ping(context.Background(), &PingRequest{Ping: true, Msg: "anyone home?"})
-		fmt.Printf("ret = %#v, err = %#v\n", ret, err)
+		fmt.Printf("ret = %s, err = %#v\n", ret.String(), err)
 		if err == nil {
 			time.Sleep(2 * time.Second)
 			continue

@@ -1,10 +1,13 @@
 from __future__ import print_function
 
-import concurrent.futures
 import grpc
+import logging
+import sys
 import time
 
 import test_pb2, test_pb2_grpc
+
+from concurrent import futures
 
 class TestServicer(test_pb2_grpc.TestServicer):
 
@@ -13,13 +16,17 @@ class TestServicer(test_pb2_grpc.TestServicer):
 
 
 def serve():
-    server = grpc.server(concurrent.futures.ThreadPoolExecutor(max_workers=10))
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     test_pb2_grpc.add_TestServicer_to_server(TestServicer(), server)
-    server.add_insecure_port('[::]:50051')
+    port = server.add_insecure_port('[::]:0') #50051')
+    if port == 0:
+        logging.error('failed to bind to port')
+        sys.exit(1)
+    print('PORT=%d' % port)
     server.start()
-
-    while True:
-        time.sleep(60)
+    server.wait_for_termination()
 
 
-serve()
+if __name__ == '__main__':
+    logging.basicConfig()
+    serve()
