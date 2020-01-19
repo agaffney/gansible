@@ -51,7 +51,6 @@ func (g *Grpc) Start() {
 		fmt.Printf("failed to get stdout pipe: %s\n", err)
 		os.Exit(1)
 	}
-	g.pythonCmd.Env = []string{"PYTHONUNBUFFERED=1"}
 	err = g.pythonCmd.Start()
 	if err != nil {
 		fmt.Printf("failed to start command: %s\n", err)

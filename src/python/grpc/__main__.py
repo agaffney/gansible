@@ -22,9 +22,16 @@ def serve():
     if port == 0:
         logging.error('failed to bind to port')
         sys.exit(1)
-    print('PORT=%d' % port)
+    print_flush('PORT=%d' % port)
     server.start()
     server.wait_for_termination()
+
+
+# Python buffers output to a pipe by default, so we use a helper function
+# to flush stdout after printing
+def print_flush(*args, **kwargs):
+    print(*args, **kwargs)
+    sys.stdout.flush()
 
 
 if __name__ == '__main__':
