@@ -41,6 +41,8 @@ $(BINARY): $(GO_FILES) $(PROTOBUF_GO_FILES) $(GRPC_PY_ZIP_GO_FILE)
 	go build -o $(BINARY)
 
 clean:
+	# Fix weird permissions in gopath/
+	test -d $(TMPDIR) && chmod -R u+rw $(TMPDIR) || true
 	rm -rf $(BINARY) $(TMPDIR) $(shell find . -name '*.pyc')
 
 run: build

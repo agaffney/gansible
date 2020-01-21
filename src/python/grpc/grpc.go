@@ -13,7 +13,6 @@ import (
 	"path"
 	"strings"
 	"syscall"
-	"time"
 )
 
 type Grpc struct {
@@ -56,7 +55,6 @@ func (g *Grpc) Start() {
 		fmt.Printf("failed to start command: %s\n", err)
 		os.Exit(1)
 	}
-	fmt.Println("started command")
 	var pythonPort string
 	stdoutBuf := bufio.NewReader(stdout)
 	portLine, _ := stdoutBuf.ReadString('\n')
@@ -87,14 +85,11 @@ func (g *Grpc) Start() {
 	}
 	defer conn.Close()
 	client := NewTestClient(conn)
-	for {
-		ret, err := client.Ping(context.Background(), &PingRequest{Ping: true, Msg: "anyone home?"})
-		fmt.Printf("ret = %s, err = %#v\n", ret.String(), err)
-		if err == nil {
-			time.Sleep(2 * time.Second)
-			continue
-		}
-		time.Sleep(100 * time.Millisecond)
+	ret, err := client.Ping(context.Background(), &PingRequest{Ping: true, Msg: "anyone home?"})
+	fmt.Printf("ret = %s, err = %#v\n", ret.String(), err)
+	if err != nil {
+		fmt.Printf("failed to Ping: %s\n", err)
+		os.Exit(1)
 	}
 	syscall.Kill(-g.pythonCmd.Process.Pid, syscall.SIGKILL)
 	os.RemoveAll(dir)
