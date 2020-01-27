@@ -21,10 +21,11 @@ src/gansible
 tmp/
 
 # Python GRPC
-src/python/grpc/*_pb2*.py
-src/python/grpc/*.pb.go
-src/python/grpc/python_grpc.zip
-src/python/grpc/python_grpc_zip.go
+*_pb2.py
+*_pb2_grpc.py
+*.pb.go
+*.zip
+*_zip.go
 
 # Compiled Python files
 *.pyc

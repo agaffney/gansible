@@ -18,15 +18,20 @@ PROTOC_GEN_GO=$(GOPATH)/bin/protoc-gen-go
 
 GO_FILES=$(shell find $(CURDIR) -name '*.go' | grep -v '^$(TMPDIR)')
 
-PROTOBUF_FILES=$(shell find python/grpc -name '*.proto')
-PROTOBUF_GO_FILES=$(patsubst %.proto,%.pb.go,$(PROTOBUF_FILES))
-PROTOBUF_PY_FILES=$(patsubst %.proto,%_pb2.py,$(PROTOBUF_FILES)) $(patsubst %.proto,%_pb2_grpc.py,$(PROTOBUF_FILES))
+PYTHON_DIR=python
+PROTOBUF_DIR=$(PYTHON_DIR)/protobuf
+PYHELPER_DIR=$(PYTHON_DIR)/pyhelper
+PYHELPER_GRPC_DIR=$(PYHELPER_DIR)/gansible/grpc
+GO_GRPC_DIR=$(PYTHON_DIR)/grpc
+
+PROTOBUF_FILES=$(shell find $(PROTOBUF_DIR) -name '*.proto')
+PROTOBUF_GO_FILES=$(patsubst $(PROTOBUF_DIR)/%,$(GO_GRPC_DIR)/%,$(patsubst %.proto,%.pb.go,$(PROTOBUF_FILES)))
+PROTOBUF_PY_FILES=$(patsubst $(PROTOBUF_DIR)/%,$(PYHELPER_GRPC_DIR)/%,$(patsubst %.proto,%_pb2.py,$(PROTOBUF_FILES))) $(patsubst $(PROTOBUF_DIR)/%,$(PYHELPER_GRPC_DIR)/%,$(patsubst %.proto,%_pb2_grpc.py,$(PROTOBUF_FILES)))
 
 # Paths for Python gRPC stub
-GRPC_PY_DIR=python/grpc
-GRPC_PY_FILES=$(GRPC_PY_DIR)/__main__.py
-GRPC_PY_ZIP=$(GRPC_PY_DIR)/python_grpc.zip
-GRPC_PY_ZIP_GO_FILE=$(GRPC_PY_DIR)/python_grpc_zip.go
+PYHELPER_FILES=$(shell find $(PYHELPER_DIR) -name '*.py')
+PYHELPER_ZIP=$(PYHELPER_DIR)/python_grpc.zip
+PYHELPER_ZIP_GO_FILE=$(GO_GRPC_DIR)/python_grpc_zip.go
 
 # Disable implicit rules
 .SUFFIXES:
@@ -37,13 +42,13 @@ all: build
 
 build: $(BINARY)
 
-$(BINARY): $(GO_FILES) $(PROTOBUF_GO_FILES) $(GRPC_PY_ZIP_GO_FILE)
+$(BINARY): $(GO_FILES) $(PROTOBUF_GO_FILES) $(PYHELPER_ZIP_GO_FILE)
 	go build -o $(BINARY)
 
 clean:
 	# Fix weird permissions in gopath/
 	test -d $(TMPDIR) && chmod -R u+rw $(TMPDIR) || true
-	rm -rf $(BINARY) $(TMPDIR) $(shell find $(GRPC_PY_DIR) -name '*.pyc') $(GRPC_PY_ZIP) $(GRPC_PY_ZIP_GO_FILE) $(PROTOBUF_PY_FILES) $(PROTOBUF_GO_FILES)
+	rm -rf $(BINARY) $(TMPDIR) $(shell find $(PYHELPER_GRPC_DIR) -name '*.pyc') $(PYHELPER_ZIP) $(PYHELPER_ZIP_GO_FILE) $(PROTOBUF_PY_FILES) $(PROTOBUF_GO_FILES)
 
 run: build
 	./$(BINARY)
@@ -56,15 +61,15 @@ grpc-protos: grpc-protos-go grpc-protos-py
 grpc-protos-go: $(PROTOBUF_GO_FILES)
 
 # Generate Go protobuf files
-%.pb.go: %.proto $(PROTOC) $(PROTOC_GEN_GO)
-	cd $(dir $@); \
-		$(PROTOC) -I . --go_out=plugins=grpc:. $(notdir $(patsubst %.pb.go,%.proto,$@))
+$(PROTOBUF_GO_FILES): $(PROTOBUF_FILES) $(PROTOC) $(PROTOC_GEN_GO)
+	$(PROTOC) -I $(PROTOBUF_DIR) --go_out=plugins=grpc:$(GO_GRPC_DIR) $(PROTOBUF_DIR)/$(patsubst %.pb.go,%.proto,$(notdir $@))
 
 grpc-protos-py: $(PROTOBUF_PY_FILES)
 
-%_pb2.py: %.proto $(VENV_PATH)
+# Generate Python protobuf files
+$(PROTOBUF_PY_FILES): $(PROTOBUF_FILES) $(VENV_PATH)
 	source $(VENV_PATH)/bin/activate ; \
-		python -m grpc_tools.protoc -I $(dir $@) --python_out=$(dir $@) --grpc_python_out=$(dir $@) $(patsubst %_pb2.py,%.proto,$@)
+		python -m grpc_tools.protoc -I $(PROTOBUF_DIR) --python_out=$(PYHELPER_GRPC_DIR) --grpc_python_out=$(PYHELPER_GRPC_DIR) $(PROTOBUF_DIR)/$(patsubst %_pb2.py,%.proto,$(notdir $@))
 
 # Build virtualenv used for generating Python gRPC files
 $(VENV_PATH):
@@ -87,16 +92,16 @@ $(PROTOC_GEN_GO):
 	go get -u github.com/golang/protobuf/protoc-gen-go
 
 # Build Python gRPC stub ZIP
-.PHONY: grpc-py-zip
+.PHONY: pyhelper-zip
 
-grpc-py-zip: $(GRPC_PY_ZIP)
+pyhelper-zip: $(PYHELPER_ZIP)
 
-$(GRPC_PY_ZIP): $(PROTOBUF_PY_FILES) $(GRPC_PY_FILES)
-	cd $(dir $(GRPC_PY_ZIP)) ; \
-		$(PYTHON) -m zipfile -c $(notdir $(GRPC_PY_ZIP)) $(notdir $(PROTOBUF_PY_FILES) $(GRPC_PY_FILES))
+$(PYHELPER_ZIP): $(PROTOBUF_PY_FILES) $(PYHELPER_FILES)
+	cd $(PYHELPER_DIR) ; \
+		$(PYTHON) -m zipfile -c $(notdir $(PYHELPER_ZIP)) __main__.py gansible
 
 # Build Go file with Python gRPC stub ZIP embedded
-$(GRPC_PY_ZIP_GO_FILE): $(GRPC_PY_ZIP)
-	echo -e '// This file is generated. Do not edit!\n\npackage grpc\n\nconst pyGrpcZipContent = `' > $(GRPC_PY_ZIP_GO_FILE)
-	base64 $(GRPC_PY_ZIP) >> $(GRPC_PY_ZIP_GO_FILE)
-	echo -e '`' >> $(GRPC_PY_ZIP_GO_FILE)
+$(PYHELPER_ZIP_GO_FILE): $(PYHELPER_ZIP)
+	echo -e '// This file is generated. Do not edit!\n\npackage grpc\n\nconst pyGrpcZipContent = `' > $(PYHELPER_ZIP_GO_FILE)
+	base64 $(PYHELPER_ZIP) >> $(PYHELPER_ZIP_GO_FILE)
+	echo -e '`' >> $(PYHELPER_ZIP_GO_FILE)

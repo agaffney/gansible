@@ -5,7 +5,7 @@ import logging
 import sys
 import time
 
-import test_pb2, test_pb2_grpc
+from gansible.grpc import test_pb2, test_pb2_grpc
 
 from concurrent import futures
 
