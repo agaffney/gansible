@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package grpc;
+package test;
 
 service Test {
   rpc Ping (PingRequest) returns (PingResponse) {}

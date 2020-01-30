@@ -21,11 +21,12 @@ GO_FILES=$(shell find $(CURDIR) -name '*.go' | grep -v '^$(TMPDIR)')
 PYTHON_DIR=python
 PROTOBUF_DIR=$(PYTHON_DIR)/protobuf
 PYHELPER_DIR=$(PYTHON_DIR)/pyhelper
-PYHELPER_GRPC_DIR=$(PYHELPER_DIR)/gansible/grpc
+PYHELPER_GRPC_DIR=$(PYHELPER_DIR)/gansible/grpc_gen
 GO_GRPC_DIR=$(PYTHON_DIR)/grpc
+GO_GRPC_GEN_DIR=$(GO_GRPC_DIR)/generated
 
 PROTOBUF_FILES=$(shell find $(PROTOBUF_DIR) -name '*.proto')
-PROTOBUF_GO_FILES=$(patsubst $(PROTOBUF_DIR)/%,$(GO_GRPC_DIR)/%,$(patsubst %.proto,%.pb.go,$(PROTOBUF_FILES)))
+PROTOBUF_GO_FILES=$(patsubst $(PROTOBUF_DIR)/%,$(GO_GRPC_GEN_DIR)/%,$(patsubst %.proto,%.pb.go,$(PROTOBUF_FILES)))
 PROTOBUF_PY_FILES=$(patsubst $(PROTOBUF_DIR)/%,$(PYHELPER_GRPC_DIR)/%,$(patsubst %.proto,%_pb2.py,$(PROTOBUF_FILES))) $(patsubst $(PROTOBUF_DIR)/%,$(PYHELPER_GRPC_DIR)/%,$(patsubst %.proto,%_pb2_grpc.py,$(PROTOBUF_FILES)))
 
 # Paths for Python gRPC stub
@@ -62,7 +63,7 @@ grpc-protos-go: $(PROTOBUF_GO_FILES)
 
 # Generate Go protobuf files
 $(PROTOBUF_GO_FILES): $(PROTOBUF_FILES) $(PROTOC) $(PROTOC_GEN_GO)
-	$(PROTOC) -I $(PROTOBUF_DIR) --go_out=plugins=grpc:$(GO_GRPC_DIR) $(PROTOBUF_DIR)/$(patsubst %.pb.go,%.proto,$(notdir $@))
+	$(PROTOC) -I $(PROTOBUF_DIR) --go_out=plugins=grpc:$(GO_GRPC_GEN_DIR) $(PROTOBUF_DIR)/$(patsubst %.pb.go,%.proto,$(notdir $@))
 
 grpc-protos-py: $(PROTOBUF_PY_FILES)
 

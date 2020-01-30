@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	grpc_gen "github.com/agaffney/gansible/python/grpc/generated"
 	"google.golang.org/grpc"
 	"io/ioutil"
 	"os"
@@ -84,8 +85,8 @@ func (g *Grpc) Start() {
 		os.Exit(1)
 	}
 	defer conn.Close()
-	client := NewTestClient(conn)
-	ret, err := client.Ping(context.Background(), &PingRequest{Ping: true, Msg: "anyone home?"})
+	client := grpc_gen.NewTestClient(conn)
+	ret, err := client.Ping(context.Background(), &grpc_gen.PingRequest{Ping: true, Msg: "anyone home?"})
 	fmt.Printf("ret = %s, err = %#v\n", ret.String(), err)
 	if err != nil {
 		fmt.Printf("failed to Ping: %s\n", err)
