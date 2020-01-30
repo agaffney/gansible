@@ -48,7 +48,7 @@ $(BINARY): $(GO_FILES) $(PROTOBUF_GO_FILES) $(PYHELPER_ZIP_GO_FILE)
 clean:
 	# Fix weird permissions in gopath/
 	test -d $(TMPDIR) && chmod -R u+rw $(TMPDIR) || true
-	rm -rf $(BINARY) $(TMPDIR) $(shell find $(PYHELPER_GRPC_DIR) -name '*.pyc') $(PYHELPER_ZIP) $(PYHELPER_ZIP_GO_FILE) $(PROTOBUF_PY_FILES) $(PROTOBUF_GO_FILES)
+	rm -rf $(BINARY) $(TMPDIR) $(shell find $(PYHELPER_DIR) -name '*.pyc') $(PYHELPER_ZIP) $(PYHELPER_ZIP_GO_FILE) $(PROTOBUF_PY_FILES) $(PROTOBUF_GO_FILES)
 
 run: build
 	./$(BINARY)
