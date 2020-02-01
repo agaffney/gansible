@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package gansible;
+
+service Inventory {
+  rpc Parse (ParseRequest) returns (BoolResponse) {}
+}
+
+message ParseRequest {
+  string path = 1;
+}
+
+message BoolResponse {
+  bool ret = 1;
+}

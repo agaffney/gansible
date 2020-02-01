@@ -92,6 +92,9 @@ func (g *Grpc) Start() {
 		fmt.Printf("failed to Ping: %s\n", err)
 		os.Exit(1)
 	}
+	inventoryClient := grpc_gen.NewInventoryClient(conn)
+	ret1, err := inventoryClient.Parse(context.Background(), &grpc_gen.ParseRequest{Path: "/foo/bar"})
+	fmt.Printf("ret = %s, err = %#v\n", ret1.String(), err)
 	syscall.Kill(-g.pythonCmd.Process.Pid, syscall.SIGKILL)
 	os.RemoveAll(dir)
 }

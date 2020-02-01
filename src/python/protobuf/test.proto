@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package test;
+package gansible;
 
 service Test {
   rpc Ping (PingRequest) returns (PingResponse) {}
