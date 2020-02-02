@@ -95,7 +95,7 @@ func (g *Grpc) Start() {
 		os.Exit(1)
 	}
 	inventoryClient := grpc_gen.NewInventoryClient(conn)
-	ret1, err := inventoryClient.Load(context.Background(), &grpc_gen.LoadRequest{Sources: []string{"foo,bar,baz", "/etc/ansible/hosts"}})
+	ret1, err := inventoryClient.Load(context.Background(), &grpc_gen.LoadRequest{Sources: []string{"/etc/ansible/hosts"}})
 	fmt.Printf("ret = %s, err = %#v\n", ret1.String(), err)
 	ret2, err := inventoryClient.ListHosts(context.Background(), &grpc_gen.ListHostsRequest{Pattern: "all"})
 	fmt.Printf("ret = %s, err = %#v\n", ret2.String(), err)

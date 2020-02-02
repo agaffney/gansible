@@ -1,3 +1,5 @@
+import json
+
 from gansible.grpc_gen import inventory_pb2, inventory_pb2_grpc
 
 from ansible.inventory.manager import InventoryManager
@@ -19,5 +21,10 @@ class InventoryServicer(inventory_pb2_grpc.InventoryServicer):
 
     def ListHosts(self, request, context):
         hosts = self._inventory.list_hosts(request.pattern)
-        hosts = [h.get_name() for h in hosts]
-        return inventory_pb2.ListHostsResponse(hosts=hosts)
+        ret = []
+        for host in hosts:
+            tmp_groups = []
+            for group in host.get_groups():
+                tmp_groups.append(inventory_pb2.Group(name=group.get_name(), vars=json.dumps(group.get_vars()), hosts=[h.get_name() for h in group.get_hosts()]))
+            ret.append(inventory_pb2.Host(name=host.get_name(), groups=tmp_groups, vars=json.dumps(host.get_vars())))
+        return inventory_pb2.ListHostsResponse(hosts=ret)

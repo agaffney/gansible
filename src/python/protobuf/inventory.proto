@@ -20,5 +20,17 @@ message ListHostsRequest {
 }
 
 message ListHostsResponse {
-  repeated string hosts = 1;
+  repeated Host hosts = 1;
+}
+
+message Host {
+  string name = 1;
+  repeated Group groups = 2;
+  string vars = 3;
+}
+
+message Group {
+  string name = 1;
+  string vars = 2;
+  repeated string hosts = 3;
 }
