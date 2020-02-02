@@ -3,13 +3,22 @@ syntax = "proto3";
 package gansible;
 
 service Inventory {
-  rpc Parse (ParseRequest) returns (BoolResponse) {}
+  rpc Load (LoadRequest) returns (BoolResponse) {}
+  rpc ListHosts (ListHostsRequest) returns (ListHostsResponse) {}
 }
 
-message ParseRequest {
-  string path = 1;
+message LoadRequest {
+  repeated string sources = 1;
 }
 
 message BoolResponse {
   bool ret = 1;
+}
+
+message ListHostsRequest {
+  string pattern = 1;
+}
+
+message ListHostsResponse {
+  repeated string hosts = 1;
 }

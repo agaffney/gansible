@@ -47,6 +47,7 @@ func (g *Grpc) Start() {
 		os.Exit(0)
 	}()
 	stdout, err := g.pythonCmd.StdoutPipe()
+	//g.pythonCmd.Stderr = os.Stderr
 	if err != nil {
 		fmt.Printf("failed to get stdout pipe: %s\n", err)
 		os.Exit(1)
@@ -71,7 +72,8 @@ func (g *Grpc) Start() {
 			if signalReceived {
 				return
 			}
-			if _, ok := err.(*exec.ExitError); ok {
+			if exitErr, ok := err.(*exec.ExitError); ok {
+				fmt.Printf("exitErr = %s\n", exitErr.Error())
 				fmt.Printf("Unexpected exit of python process with the following output:\n\n%%s\n")
 			} else {
 				fmt.Printf("Unexpected error running python process: %s\n", err)
@@ -93,8 +95,10 @@ func (g *Grpc) Start() {
 		os.Exit(1)
 	}
 	inventoryClient := grpc_gen.NewInventoryClient(conn)
-	ret1, err := inventoryClient.Parse(context.Background(), &grpc_gen.ParseRequest{Path: "/foo/bar"})
+	ret1, err := inventoryClient.Load(context.Background(), &grpc_gen.LoadRequest{Sources: []string{"foo,bar,baz", "/etc/ansible/hosts"}})
 	fmt.Printf("ret = %s, err = %#v\n", ret1.String(), err)
+	ret2, err := inventoryClient.ListHosts(context.Background(), &grpc_gen.ListHostsRequest{Pattern: "all"})
+	fmt.Printf("ret = %s, err = %#v\n", ret2.String(), err)
 	syscall.Kill(-g.pythonCmd.Process.Pid, syscall.SIGKILL)
 	os.RemoveAll(dir)
 }
