@@ -46,10 +46,10 @@ func (g *Grpc) Start() {
 		syscall.Kill(-g.pythonCmd.Process.Pid, syscall.SIGKILL)
 		os.Exit(0)
 	}()
-	stdout, err := g.pythonCmd.StdoutPipe()
-	//g.pythonCmd.Stderr = os.Stderr
+	stderr, err := g.pythonCmd.StderrPipe()
+	g.pythonCmd.Stdout = os.Stdout
 	if err != nil {
-		fmt.Printf("failed to get stdout pipe: %s\n", err)
+		fmt.Printf("failed to get stderr pipe: %s\n", err)
 		os.Exit(1)
 	}
 	err = g.pythonCmd.Start()
@@ -58,8 +58,8 @@ func (g *Grpc) Start() {
 		os.Exit(1)
 	}
 	var pythonPort string
-	stdoutBuf := bufio.NewReader(stdout)
-	portLine, _ := stdoutBuf.ReadString('\n')
+	stderrBuf := bufio.NewReader(stderr)
+	portLine, _ := stderrBuf.ReadString('\n')
 	if strings.HasPrefix(portLine, "PORT=") {
 		pythonPort = portLine[5 : len(portLine)-1]
 	} else {
@@ -67,6 +67,7 @@ func (g *Grpc) Start() {
 		os.Exit(1)
 	}
 	go func() {
+		// TODO: read from stderr until EOF before calling Wait()
 		err := g.pythonCmd.Wait()
 		if err != nil {
 			if signalReceived {
@@ -87,6 +88,7 @@ func (g *Grpc) Start() {
 		os.Exit(1)
 	}
 	defer conn.Close()
+
 	client := grpc_gen.NewTestClient(conn)
 	ret, err := client.Ping(context.Background(), &grpc_gen.PingRequest{Ping: true, Msg: "anyone home?"})
 	fmt.Printf("ret = %s, err = %#v\n", ret.String(), err)
@@ -94,16 +96,19 @@ func (g *Grpc) Start() {
 		fmt.Printf("failed to Ping: %s\n", err)
 		os.Exit(1)
 	}
+
 	inventoryClient := grpc_gen.NewInventoryClient(conn)
 	ret1, err := inventoryClient.Load(context.Background(), &grpc_gen.LoadRequest{Sources: []string{"/etc/ansible/hosts"}})
 	fmt.Printf("ret1 = %s, err = %#v\n", ret1.String(), err)
 	ret2, err := inventoryClient.ListHosts(context.Background(), &grpc_gen.ListHostsRequest{Pattern: "all"})
 	fmt.Printf("ret2 = %s, err = %#v\n", ret2.String(), err)
+
 	callbackClient := grpc_gen.NewCallbackClient(conn)
 	ret3, err := callbackClient.Init(context.Background(), &grpc_gen.Empty{})
 	fmt.Printf("ret3 = %s, err = %#v\n", ret3.String(), err)
 	ret4, err := callbackClient.RunnerOnOk(context.Background(), &grpc_gen.TaskResult{})
 	fmt.Printf("ret4 = %s, err = %#v\n", ret4.String(), err)
+
 	syscall.Kill(-g.pythonCmd.Process.Pid, syscall.SIGKILL)
 	os.RemoveAll(dir)
 }

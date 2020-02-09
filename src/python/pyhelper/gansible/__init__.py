@@ -1,3 +1,7 @@
+# Suppress warnings about setuptools on py2
+import warnings
+warnings.filterwarnings("ignore", module='pkg_resources.py2_warn')
+
 import grpc
 import logging
 import sys
@@ -5,7 +9,6 @@ import sys
 from gansible.callback import CallbackServicer
 from gansible.inventory import InventoryServicer
 from gansible.test import TestServicer
-from gansible.util import print_flush
 from concurrent import futures
 
 class Gansible(object):
@@ -22,6 +25,7 @@ class Gansible(object):
         if port == 0:
             logging.error('failed to bind to port')
             sys.exit(1)
-        print_flush('PORT=%d' % port)
+        sys.stderr.write("PORT=%d\n" % port)
+        sys.stderr.flush()
         server.start()
         server.wait_for_termination()
