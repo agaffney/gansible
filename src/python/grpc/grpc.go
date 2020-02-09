@@ -96,9 +96,14 @@ func (g *Grpc) Start() {
 	}
 	inventoryClient := grpc_gen.NewInventoryClient(conn)
 	ret1, err := inventoryClient.Load(context.Background(), &grpc_gen.LoadRequest{Sources: []string{"/etc/ansible/hosts"}})
-	fmt.Printf("ret = %s, err = %#v\n", ret1.String(), err)
+	fmt.Printf("ret1 = %s, err = %#v\n", ret1.String(), err)
 	ret2, err := inventoryClient.ListHosts(context.Background(), &grpc_gen.ListHostsRequest{Pattern: "all"})
-	fmt.Printf("ret = %s, err = %#v\n", ret2.String(), err)
+	fmt.Printf("ret2 = %s, err = %#v\n", ret2.String(), err)
+	callbackClient := grpc_gen.NewCallbackClient(conn)
+	ret3, err := callbackClient.Init(context.Background(), &grpc_gen.Empty{})
+	fmt.Printf("ret3 = %s, err = %#v\n", ret3.String(), err)
+	ret4, err := callbackClient.RunnerOnOk(context.Background(), &grpc_gen.TaskResult{})
+	fmt.Printf("ret4 = %s, err = %#v\n", ret4.String(), err)
 	syscall.Kill(-g.pythonCmd.Process.Pid, syscall.SIGKILL)
 	os.RemoveAll(dir)
 }

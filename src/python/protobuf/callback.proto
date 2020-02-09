@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package gansible;
+
+service Callback {
+  rpc Init(Empty) returns (Empty) {}
+  rpc RunnerOnOk (TaskResult) returns (Empty) {}
+}
+
+message TaskResult {
+
+}
+
+message Task {
+
+}
+
+message Play {
+
+}
+
+message Playbook {
+
+}
+
+message IncludedFile {
+
+}
+
+message Stats {
+
+}
+
+// Purposely left empty for use in functions that don't return anything
+message Empty {}
