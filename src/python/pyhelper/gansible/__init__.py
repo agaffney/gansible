@@ -8,6 +8,7 @@ import sys
 
 from gansible.callback import CallbackServicer
 from gansible.inventory import InventoryServicer
+from gansible.template import TemplateServicer
 from gansible.test import TestServicer
 from concurrent import futures
 
@@ -21,6 +22,7 @@ class Gansible(object):
         TestServicer.add_to_server(server)
         InventoryServicer.add_to_server(server)
         CallbackServicer.add_to_server(server)
+        TemplateServicer.add_to_server(server)
         port = server.add_insecure_port('[::]:0')
         if port == 0:
             logging.error('failed to bind to port')

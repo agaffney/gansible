@@ -109,6 +109,10 @@ func (g *Grpc) Start() {
 	ret4, err := callbackClient.RunnerOnOk(context.Background(), &grpc_gen.TaskResult{})
 	fmt.Printf("ret4 = %s, err = %#v\n", ret4.String(), err)
 
+	templateClient := grpc_gen.NewTemplateClient(conn)
+	ret5, err := templateClient.Render(context.Background(), &grpc_gen.TemplateRequest{Template: `foo {{ 'bar' }} baz, {{ {'foo':'bar'} | dict2items }}`})
+	fmt.Printf("ret5 = %s, err = %#v\n", ret5.String(), err)
+
 	syscall.Kill(-g.pythonCmd.Process.Pid, syscall.SIGKILL)
 	os.RemoveAll(dir)
 }

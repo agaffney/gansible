@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package gansible;
+
+service Template {
+  rpc Render (TemplateRequest) returns (TemplateResponse) {}
+}
+
+message TemplateRequest {
+  string template = 1;
+}
+
+message TemplateResponse {
+  string result = 1;
+  string error = 2;
+  ErrorType errorType = 3;
+}
+
+enum ErrorType {
+  NONE = 0;
+  UNDEFINED = 1;
+  OTHER = 2;
+}
