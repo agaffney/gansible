@@ -14,7 +14,7 @@ class CallbackServicer(callback_pb2_grpc.CallbackServicer):
     # Vars used by the load_callbacks() method from TQM
     _callbacks_loaded = False
     _callback_plugins = []
-    _run_additional_callbacks = False
+    _run_additional_callbacks = True
     _run_tree = False
     _stdout_callback = None
 
@@ -27,13 +27,10 @@ class CallbackServicer(callback_pb2_grpc.CallbackServicer):
         # Call function to load callbacks from TQM using ourself as the class instance
         _load_callbacks = TaskQueueManager.__dict__['load_callbacks']
         _load_callbacks(self)
-        raise Exception("callbacks_loaded = %s,callback_plugins = %s" % (self._callbacks_loaded, self._callback_plugins))
         return callback_pb2.Empty()
 
     def _call_plugins(self, fn_name, *args, **kwargs):
-        raise Exception("would call %s(): args=%s, kwargs=%s" % (fn_name, args, kwargs))
-        for callback_plugin in self._callback_plugins:
-            raise Exception("would call %s() on callback plugin %s" % (fn_name, callback_plugin.NAME))
+        for callback_plugin in ([self._stdout_callback] + self._callback_plugins):
             fn = getattr(callback_plugin, fn_name)
             fn(*args, **kwargs)
 
