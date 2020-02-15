@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package variable;
+
+option go_package = "gansible";
+
+message Variable {
+	string name = 1;
+	Value value = 2;
+}
+
+message Value {
+	ValueType type = 1;
+	string stringValue = 2;
+	sint64 intValue = 3;
+	float floatValue = 4;
+	bool boolValue = 5;
+	repeated Value listValue = 6;
+	repeated Variable dictValue = 7;
+}
+
+enum ValueType {
+	NONE = 0;
+	STRING = 1;
+	INT = 2;
+	FLOAT = 3;
+	BOOL = 4;
+	LIST = 5;
+	DICT = 6;
+}

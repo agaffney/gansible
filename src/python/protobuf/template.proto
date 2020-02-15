@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package gansible;
 
+import "variable.proto";
+
 service Template {
   rpc Render (TemplateRequest) returns (TemplateResponse) {}
 }
@@ -11,7 +13,7 @@ message TemplateRequest {
 }
 
 message TemplateResponse {
-  string result = 1;
+  variable.Value result = 1;
   string error = 2;
   ErrorType errorType = 3;
 }
