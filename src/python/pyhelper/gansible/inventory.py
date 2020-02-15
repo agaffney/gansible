@@ -1,7 +1,6 @@
-import json
-
 from gansible.grpc_gen import inventory_pb2, inventory_pb2_grpc
 from gansible.util import exception_wrapper
+from gansible.variable import Value
 
 from ansible.inventory.manager import InventoryManager
 from ansible.parsing.dataloader import DataLoader
@@ -28,6 +27,6 @@ class InventoryServicer(inventory_pb2_grpc.InventoryServicer):
         for host in hosts:
             tmp_groups = []
             for group in host.get_groups():
-                tmp_groups.append(inventory_pb2.Group(name=group.get_name(), vars=json.dumps(group.get_vars()), hosts=[h.get_name() for h in group.get_hosts()]))
-            ret.append(inventory_pb2.Host(name=host.get_name(), groups=tmp_groups, vars=json.dumps(host.get_vars())))
+                tmp_groups.append(inventory_pb2.Group(name=group.get_name(), vars=Value(group.get_vars()), hosts=[h.get_name() for h in group.get_hosts()]))
+            ret.append(inventory_pb2.Host(name=host.get_name(), groups=tmp_groups, vars=Value(host.get_vars())))
         return inventory_pb2.ListHostsResponse(hosts=ret)

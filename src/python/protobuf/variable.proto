@@ -16,7 +16,12 @@ message Value {
 	float floatValue = 4;
 	bool boolValue = 5;
 	repeated Value listValue = 6;
-	repeated Variable dictValue = 7;
+	repeated DictEntry dictValue = 7;
+}
+
+message DictEntry {
+	Value key = 1;
+	Value value = 2;
 }
 
 enum ValueType {

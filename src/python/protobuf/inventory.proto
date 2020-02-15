@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package gansible;
 
+import "variable.proto";
+
 service Inventory {
   rpc Load (LoadRequest) returns (BoolResponse) {}
   rpc ListHosts (ListHostsRequest) returns (ListHostsResponse) {}
@@ -26,11 +28,11 @@ message ListHostsResponse {
 message Host {
   string name = 1;
   repeated Group groups = 2;
-  string vars = 3;
+  variable.Value vars = 3;
 }
 
 message Group {
   string name = 1;
-  string vars = 2;
+  variable.Value vars = 2;
   repeated string hosts = 3;
 }

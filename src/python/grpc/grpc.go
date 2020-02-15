@@ -35,6 +35,9 @@ func (g *Grpc) Start() {
 	// Put child process in its own process group to make it easier to kill with
 	/// all its children
 	g.pythonCmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	// Create pipe for communicating listening port
+	portReader, portWriter, _ := os.Pipe()
+	g.pythonCmd.ExtraFiles = []*os.File{portWriter}
 	// Setup signal handler
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM)
@@ -46,20 +49,16 @@ func (g *Grpc) Start() {
 		syscall.Kill(-g.pythonCmd.Process.Pid, syscall.SIGKILL)
 		os.Exit(0)
 	}()
-	stderr, err := g.pythonCmd.StderrPipe()
 	g.pythonCmd.Stdout = os.Stdout
-	if err != nil {
-		fmt.Printf("failed to get stderr pipe: %s\n", err)
-		os.Exit(1)
-	}
-	err = g.pythonCmd.Start()
+	g.pythonCmd.Stderr = os.Stderr
+	err := g.pythonCmd.Start()
 	if err != nil {
 		fmt.Printf("failed to start command: %s\n", err)
 		os.Exit(1)
 	}
 	var pythonPort string
-	stderrBuf := bufio.NewReader(stderr)
-	portLine, _ := stderrBuf.ReadString('\n')
+	portReaderBuf := bufio.NewReader(portReader)
+	portLine, _ := portReaderBuf.ReadString('\n')
 	if strings.HasPrefix(portLine, "PORT=") {
 		pythonPort = portLine[5 : len(portLine)-1]
 	} else {
@@ -67,7 +66,6 @@ func (g *Grpc) Start() {
 		os.Exit(1)
 	}
 	go func() {
-		// TODO: read from stderr until EOF before calling Wait()
 		err := g.pythonCmd.Wait()
 		if err != nil {
 			if signalReceived {
@@ -75,7 +73,7 @@ func (g *Grpc) Start() {
 			}
 			if exitErr, ok := err.(*exec.ExitError); ok {
 				fmt.Printf("exitErr = %s\n", exitErr.Error())
-				fmt.Printf("Unexpected exit of python process with the following output:\n\n%%s\n")
+				fmt.Printf("Unexpected exit of python process\n")
 			} else {
 				fmt.Printf("Unexpected error running python process: %s\n", err)
 			}
@@ -88,14 +86,6 @@ func (g *Grpc) Start() {
 		os.Exit(1)
 	}
 	defer conn.Close()
-
-	client := grpc_gen.NewTestClient(conn)
-	ret, err := client.Ping(context.Background(), &grpc_gen.PingRequest{Ping: true, Msg: "anyone home?"})
-	fmt.Printf("ret = %s, err = %#v\n", ret.String(), err)
-	if err != nil {
-		fmt.Printf("failed to Ping: %s\n", err)
-		os.Exit(1)
-	}
 
 	inventoryClient := grpc_gen.NewInventoryClient(conn)
 	ret1, err := inventoryClient.Load(context.Background(), &grpc_gen.LoadRequest{Sources: []string{"/etc/ansible/hosts"}})

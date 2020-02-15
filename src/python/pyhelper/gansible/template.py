@@ -1,7 +1,8 @@
 import json
 
-from gansible.grpc_gen import template_pb2, template_pb2_grpc, variable_pb2
+from gansible.grpc_gen import template_pb2, template_pb2_grpc
 from gansible.util import exception_wrapper
+from gansible.variable import Value
 
 from ansible.errors import AnsibleUndefinedVariable
 from ansible.parsing.dataloader import DataLoader
@@ -24,4 +25,4 @@ class TemplateServicer(template_pb2_grpc.TemplateServicer):
             if isinstance(e, AnsibleUndefinedVariable):
                 error_type = template_pb2.ErrorType.UNDEFINED
             return template_pb2.TemplateResponse(errorType=error_type, error=str(e))
-        return template_pb2.TemplateResponse(result=variable_pb2.Value(type=variable_pb2.ValueType.STRING, stringValue=result))
+        return template_pb2.TemplateResponse(result=Value(result))
