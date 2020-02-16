@@ -15,13 +15,8 @@ message Value {
 	sint64 intValue = 3;
 	float floatValue = 4;
 	bool boolValue = 5;
-	repeated Value listValue = 6;
-	repeated DictEntry dictValue = 7;
-}
-
-message DictEntry {
-	Value key = 1;
-	Value value = 2;
+	List listValue = 6;
+	Dict dictValue = 7;
 }
 
 enum ValueType {
@@ -32,4 +27,17 @@ enum ValueType {
 	BOOL = 4;
 	LIST = 5;
 	DICT = 6;
+}
+
+message List {
+	repeated Value items = 1;
+}
+
+message Dict {
+	repeated DictEntry items = 1;
+}
+
+message DictEntry {
+	Value key = 1;
+	Value value = 2;
 }

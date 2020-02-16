@@ -6,15 +6,15 @@ from gansible.grpc_gen import variable_pb2
 def Value(value):
     kwargs = None
     if isinstance(value, Mapping):
-        dictValue = []
+        dictItems = []
         for key in value.keys():
-            dictValue.append(variable_pb2.DictEntry(key=Value(key), value=Value(value[key])))
-        kwargs = dict(type=variable_pb2.ValueType.DICT, dictValue=dictValue)
+            dictItems.append(variable_pb2.DictEntry(key=Value(key), value=Value(value[key])))
+        kwargs = dict(type=variable_pb2.ValueType.DICT, dictValue=variable_pb2.Dict(items=dictItems))
     elif isinstance(value, list):
-        listValue = []
+        listItems = []
         for item in value:
-            listValue.append(Value(item))
-        kwargs = dict(type=variable_pb2.ValueType.LIST, listValue=listValue)
+            listItems.append(Value(item))
+        kwargs = dict(type=variable_pb2.ValueType.LIST, listValue=variable_pb2.List(items=listItems))
     elif isinstance(value, six.string_types):
         kwargs = dict(type=variable_pb2.ValueType.STRING, stringValue=value)
     elif isinstance(value, bool):

@@ -2,6 +2,21 @@ syntax = "proto3";
 
 package gansible;
 
-service Action {
+import "variable.proto";
 
+service Action {
+  rpc Init(InitEmpty) returns (InitEmpty) {}
+  rpc Run(RunRequest) returns (RunResponse) {}
+}
+
+message InitEmpty {
+}
+
+message RunRequest {
+  string action = 1;
+  variable.Value params = 2;
+}
+
+message RunResponse {
+  variable.Value result = 1;
 }

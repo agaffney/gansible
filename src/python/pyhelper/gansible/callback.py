@@ -1,5 +1,3 @@
-import json
-
 from gansible.grpc_gen import callback_pb2, callback_pb2_grpc
 from gansible.util import exception_wrapper
 

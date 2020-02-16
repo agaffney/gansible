@@ -8,6 +8,7 @@ import logging
 import os
 import sys
 
+from gansible.action import ActionServicer
 from gansible.callback import CallbackServicer
 from gansible.inventory import InventoryServicer
 from gansible.template import TemplateServicer
@@ -24,8 +25,9 @@ class Gansible(object):
 
     def start(self):
         server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
-        InventoryServicer.add_to_server(server)
+        ActionServicer.add_to_server(server)
         CallbackServicer.add_to_server(server)
+        InventoryServicer.add_to_server(server)
         TemplateServicer.add_to_server(server)
         port = server.add_insecure_port('[::]:0')
         if port == 0:
